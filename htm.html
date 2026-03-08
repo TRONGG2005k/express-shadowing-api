@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>LMS ERD v5 — Final Review</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Syne:wght@700;800&display=swap');
+
+        :root {
+            --bg: #0b0e16;
+            --surface: #131720;
+            --border: #1e2535;
+            --green: #3ecf8e;
+            --red: #ff5757;
+            --yellow: #f5c030;
+            --blue: #58a6ff;
+            --muted: #4a5570;
+            --text: #bcc8de;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'IBM Plex Mono', monospace;
+            padding: 36px
+        }
+
+        h1 {
+            font-family: 'Syne', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 4px
+        }
+
+        .sub {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 24px
+        }
+
+        code {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 1px 5px;
+            border-radius: 3px;
+            font-size: 11px;
+            color: var(--blue)
+        }
+
+        /* Journey */
+        .journey {
+            display: flex;
+            margin-bottom: 28px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden
+        }
+
+        .jstep {
+            flex: 1;
+            padding: 14px 16px;
+            border-right: 1px solid var(--border);
+            position: relative
+        }
+
+        .jstep:last-child {
+            border-right: none;
+            background: rgba(62, 207, 142, 0.05)
+        }
+
+        .jver {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 4px;
+            letter-spacing: 1px
+        }
+
+        .jstep:last-child .jver {
+            color: var(--green)
+        }
+
+        .jgrade {
+            font-family: 'Syne', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--muted)
+        }
+
+        .jstep:last-child .jgrade {
+            color: var(--green)
+        }
+
+        .jnote {
+            font-size: 10px;
+            color: var(--muted);
+            margin-top: 3px
+        }
+
+        .jbar {
+            height: 3px;
+            background: var(--border);
+            border-radius: 99px;
+            margin-top: 10px;
+            overflow: hidden
+        }
+
+        .jfill {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, var(--green), var(--blue))
+        }
+
+        /* diagram */
+        .diagram-box {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            overflow-x: auto
+        }
+
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 14px
+        }
+
+        /* final diff */
+        .final-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px
+        }
+
+        .col-head {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 10px
+        }
+
+        .item {
+            display: flex;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            line-height: 1.6
+        }
+
+        .item.ok {
+            background: rgba(62, 207, 142, 0.06);
+            border: 1px solid rgba(62, 207, 142, 0.18)
+        }
+
+        .item.tip {
+            background: rgba(88, 166, 255, 0.06);
+            border: 1px solid rgba(88, 166, 255, 0.18)
+        }
+
+        .item-icon {
+            flex-shrink: 0;
+            margin-top: 1px
+        }
+
+        .item-name {
+            font-weight: 600;
+            color: white;
+            margin-bottom: 2px;
+            font-size: 12px
+        }
+
+        .item-desc {
+            color: var(--muted)
+        }
+
+        /* master checklist */
+        .checklist {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 24px
+        }
+
+        .cl-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 12px
+        }
+
+        .cl-group {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 8px 0 4px;
+            border-top: 1px solid var(--border);
+            margin-top: 4px
+        }
+
+        .cl-group:first-of-type {
+            border-top: none;
+            margin-top: 0;
+            padding-top: 0
+        }
+
+        .cl-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 6px 0;
+            font-size: 12px;
+            border-bottom: 1px solid rgba(30, 37, 53, 0.8)
+        }
+
+        .cl-item:last-child {
+            border-bottom: none
+        }
+
+        .cl-text {
+            color: var(--muted);
+            text-decoration: line-through
+        }
+
+        .cl-text.open {
+            color: var(--text);
+            text-decoration: none
+        }
+
+        /* micro issues */
+        .tips {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px
+        }
+
+        .tip-card {
+            background: var(--surface);
+            border: 1px solid rgba(88, 166, 255, 0.2);
+            border-left: 3px solid var(--blue);
+            border-radius: 8px;
+            padding: 14px;
+            font-size: 12px
+        }
+
+        .tip-head {
+            font-family: 'Syne', sans-serif;
+            font-weight: 700;
+            font-size: 12px;
+            color: white;
+            margin-bottom: 6px
+        }
+
+        .tip-body {
+            color: var(--muted);
+            line-height: 1.65
+        }
+
+        /* verdict */
+        .verdict {
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            border-radius: 14px;
+            padding: 28px 28px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(62, 207, 142, 0.3);
+            background: var(--surface)
+        }
+
+        .verdict::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(62, 207, 142, 0.08) 0%, rgba(88, 166, 255, 0.04) 100%);
+            pointer-events: none
+        }
+
+        .v-big {
+            font-family: 'Syne', sans-serif;
+            font-size: 80px;
+            font-weight: 800;
+            line-height: 1;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, var(--green), var(--blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent
+        }
+
+        .v-right h2 {
+            font-family: 'Syne', sans-serif;
+            font-size: 17px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 10px
+        }
+
+        .v-right p {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.8
+        }
+
+        .pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            margin-right: 4px;
+            border: 1px solid
+        }
+
+        .pill.g {
+            color: var(--green);
+            border-color: rgba(62, 207, 142, 0.4);
+            background: rgba(62, 207, 142, 0.08)
+        }
+
+        .pill.b {
+            color: var(--blue);
+            border-color: rgba(88, 166, 255, 0.4);
+            background: rgba(88, 166, 255, 0.08)
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>LMS ERD — v5 Final Review</h1>
+    <p class="sub">Tổng kết hành trình · Đánh giá cuối · Gợi ý nâng cấp tương lai</p>
+
+    <!-- Journey v1→v5 -->
+    <div class="journey">
+        <div class="jstep">
+            <div class="jver">V1</div>
+            <div class="jgrade">D+</div>
+            <div class="jnote">Schema cơ bản, nhiều lỗ hổng</div>
+            <div class="jbar">
+                <div class="jfill" style="width:32%"></div>
+            </div>
+        </div>
+        <div class="jstep">
+            <div class="jver">V2</div>
+            <div class="jgrade">B+</div>
+            <div class="jnote">Thêm ROLE, STUDENT_ANSWER</div>
+            <div class="jbar">
+                <div class="jfill" style="width:62%"></div>
+            </div>
+        </div>
+        <div class="jstep">
+            <div class="jver">V3</div>
+            <div class="jgrade">A−</div>
+            <div class="jnote">Core flow hoàn chỉnh</div>
+            <div class="jbar">
+                <div class="jfill" style="width:78%"></div>
+            </div>
+        </div>
+        <div class="jstep">
+            <div class="jver">V4</div>
+            <div class="jgrade">A</div>
+            <div class="jnote">Notification chuẩn, audit trail</div>
+            <div class="jbar">
+                <div class="jfill" style="width:90%"></div>
+            </div>
+        </div>
+        <div class="jstep">
+            <div class="jver">V5 ← FINAL</div>
+            <div class="jgrade">A+</div>
+            <div class="jnote">Production-ready ✦</div>
+            <div class="jbar">
+                <div class="jfill" style="width:97%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Diagram -->
+    <div class="diagram-box">
+        <div class="mermaid">
+            erDiagram
+
+            USER {
+            bigint id PK
+            string phone
+            string password_hash
+            boolean is_active
+            datetime created_at
+            datetime updated_at
+            }
+            ROLE { bigint id PK; string name }
+            USER_ROLE { bigint user_id FK; bigint role_id FK }
+            STUDENT { bigint id PK; bigint user_id FK; string full_name; datetime created_at }
+            TEACHER { bigint id PK; bigint user_id FK; string full_name; datetime created_at }
+            CLASS { bigint id PK; string name; bigint teacher_id FK; datetime created_at }
+            STUDENT_CLASS { bigint student_id FK; bigint class_id FK; datetime joined_at }
+            ASSIGNMENT {
+            bigint id PK
+            bigint class_id FK
+            bigint created_by FK
+            string title
+            string description
+            enum type
+            datetime due_date
+            datetime created_at
+            datetime updated_at
+            }
+            QUESTION {
+            bigint id PK
+            bigint assignment_id FK
+            string content
+            enum type
+            int order_index
+            string audio_url
+            }
+            ANSWER_OPTION { bigint id PK; bigint question_id FK; string content; boolean is_correct }
+            USER_EXERCISE {
+            bigint id PK
+            bigint user_id FK
+            bigint assignment_id FK
+            int correct_answers
+            int total_questions
+            string status
+            datetime submitted_at
+            }
+            STUDENT_ANSWER {
+            bigint id PK
+            bigint user_exercise_id FK
+            bigint question_id FK
+            bigint selected_option_id FK
+            string text_answer
+            string audio_url
+            string video_url
+            boolean is_correct
+            }
+            EXERCISE_RESULT {
+            bigint id PK
+            bigint user_exercise_id FK
+            bigint teacher_id FK
+            int teacher_correct_answers
+            string feedback
+            datetime graded_at
+            }
+            NOTIFICATION {
+            bigint id PK
+            bigint sender_id FK
+            string title
+            string message
+            string type
+            datetime created_at
+            }
+            NOTIFICATION_RECIPIENT {
+            bigint notification_id FK
+            bigint user_id FK
+            datetime read_at
+            }
+
+            USER ||--o{ USER_ROLE : has
+            ROLE ||--o{ USER_ROLE : assigns
+            USER ||--|| STUDENT : profile
+            USER ||--|| TEACHER : profile
+            TEACHER ||--o{ CLASS : owns
+            STUDENT }o--o{ CLASS : joins
+            CLASS ||--o{ ASSIGNMENT : contains
+            TEACHER ||--o{ ASSIGNMENT : creates
+            ASSIGNMENT ||--o{ QUESTION : has
+            QUESTION ||--o{ ANSWER_OPTION : options
+            USER ||--o{ USER_EXERCISE : submits
+            ASSIGNMENT ||--o{ USER_EXERCISE : attempts
+            USER_EXERCISE ||--o{ STUDENT_ANSWER : answers
+            QUESTION ||--o{ STUDENT_ANSWER : answered
+            ANSWER_OPTION ||--o{ STUDENT_ANSWER : selected
+            USER_EXERCISE ||--|| EXERCISE_RESULT : graded
+            TEACHER ||--o{ EXERCISE_RESULT : evaluates
+            USER ||--o{ NOTIFICATION : sends
+            NOTIFICATION ||--o{ NOTIFICATION_RECIPIENT : delivers
+            USER ||--o{ NOTIFICATION_RECIPIENT : receives
+        </div>
+    </div>
+
+    <!-- Final diff v4→v5 -->
+    <div class="section-title">Những gì v5 đã hoàn thiện so với v4</div>
+    <div class="final-row">
+        <div>
+            <div class="col-head" style="color:var(--green)">✅ 3 việc cuối đã được fix</div>
+            <div class="item ok">
+                <span class="item-icon">✅</span>
+                <div>
+                    <div class="item-name">ENUM cho Assignment.type & Question.type</div>
+                    <div class="item-desc">DB-level constraint — không thể nhập giá trị sai nữa. Đây là cách đúng nhất.
+                    </div>
+                </div>
+            </div>
+            <div class="item ok">
+                <span class="item-icon">✅</span>
+                <div>
+                    <div class="item-name">sender_id FK trong NOTIFICATION</div>
+                    <div class="item-desc">Biết ai tạo thông báo. Nullable cho phép system notification không cần
+                        sender.</div>
+                </div>
+            </div>
+            <div class="item ok">
+                <span class="item-icon">✅</span>
+                <div>
+                    <div class="item-name">read_at thay is_read boolean</div>
+                    <div class="item-desc">Quyết định thông minh — <code>NULL = chưa đọc</code>, có giá trị = đọc lúc
+                        đó. Một field làm được việc của hai.</div>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="col-head" style="color:var(--blue)">💡 Gợi ý cho tương lai (không bắt buộc)</div>
+            <div class="item tip">
+                <span class="item-icon">💡</span>
+                <div>
+                    <div class="item-name">reference_type + reference_id trong NOTIFICATION</div>
+                    <div class="item-desc">Khi bấm vào notification, app không biết dẫn đến đâu. Cần thêm nếu muốn
+                        deep-link đến bài tập hoặc kết quả cụ thể.</div>
+                </div>
+            </div>
+            <div class="item tip">
+                <span class="item-icon">💡</span>
+                <div>
+                    <div class="item-name">score per answer trong STUDENT_ANSWER</div>
+                    <div class="item-desc">Nếu muốn chấm điểm từng câu có trọng số khác nhau thì cần thêm
+                        <code>score DECIMAL</code>. Hiện tại chỉ có <code>is_correct</code>.</div>
+                </div>
+            </div>
+            <div class="item tip">
+                <span class="item-icon">💡</span>
+                <div>
+                    <div class="item-name">Soft delete pattern</div>
+                    <div class="item-desc">Không có <code>deleted_at</code> ở bất kỳ bảng nào. Khi xóa class hay
+                        assignment, data học sinh liên quan sẽ bị cascade — nguy hiểm trong môi trường production.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Master checklist -->
+    <div class="checklist">
+        <div class="cl-title">📋 Master Checklist — Toàn bộ v1 → v5</div>
+
+        <div class="cl-group">Auth & Identity</div>
+        <div class="cl-item"><span>✅</span><span class="cl-text">Multi-role với ROLE + USER_ROLE</span></div>
+        <div class="cl-item"><span>✅</span><span class="cl-text">Tách User / Student / Teacher profile</span></div>
+        <div class="cl-item"><span>✅</span><span class="cl-text">updated_at cho audit trail</span></div>
+
+        <div class="cl-group">Class & Assignment</div>
+        <div class="cl-item"><span>✅</span><span class="cl-text">class_id trong ASSIGNMENT</span></div>
+        <div class="cl-item"><span>✅</span><span class="cl-text">ENUM type cho Assignment và Question</span></div>
+        <div class="cl-item"><span>✅</span><span class="cl-text">ANSWER_OPTION cho multiple choice</span></div>
+
+        <div class="cl-group">Submission & Grading</div>
+        <div class="cl-item"><span>✅</span><span class="cl-text">STUDENT_ANSWER lưu kết quả từng câu</span></div>
+        <div class="cl-item"><span>✅</span><span class="cl-text">audio_url trong STUDENT_ANSWER cho shadowing</span>
+        </div>
+        <div class="cl-item"><span>✅</span><span class="cl-text">Bỏ duplicate score — correct_answers /
+                total_questions</span></div>
+        <div class="cl-item"><span>✅</span><span class="cl-text">EXERCISE_RESULT tách teacher grading riêng</span></div>
+
+        <div class="cl-group">Notification</div>
+        <div class="cl-item"><span>✅</span><span class="cl-text">Broadcast pattern đúng — NOTIFICATION +
+                NOTIFICATION_RECIPIENT</span></div>
+        <div class="cl-item"><span>✅</span><span class="cl-text">sender_id trong NOTIFICATION</span></div>
+        <div class="cl-item"><span>✅</span><span class="cl-text">read_at thay is_read boolean</span></div>
+
+        <div class="cl-group">Tương lai — không bắt buộc cho MVP</div>
+        <div class="cl-item"><span>⬜</span><span class="cl-text open">reference_type + reference_id cho deep-link
+                notification</span></div>
+        <div class="cl-item"><span>⬜</span><span class="cl-text open">score per answer trong STUDENT_ANSWER</span></div>
+        <div class="cl-item"><span>⬜</span><span class="cl-text open">Soft delete (deleted_at) ở các bảng quan
+                trọng</span></div>
+    </div>
+
+    <!-- Tips -->
+    <div class="section-title">Gợi ý khi triển khai</div>
+    <div class="tips">
+        <div class="tip-card">
+            <div class="tip-head">🔗 Deep-link Notification</div>
+            <div class="tip-body">Thêm 2 field vào
+                NOTIFICATION:<br><code>reference_type VARCHAR(50)</code><br><code>reference_id BIGINT NULL</code><br>Ví
+                dụ: <code>type='new_assignment', reference_type='assignment', reference_id=42</code> → app tự biết
+                redirect đến đâu.</div>
+        </div>
+        <div class="tip-card">
+            <div class="tip-head">🗑 Soft Delete</div>
+            <div class="tip-body">Thêm <code>deleted_at DATETIME NULL</code> vào CLASS, ASSIGNMENT, USER_EXERCISE. Khi
+                xóa thì set timestamp thay vì DELETE thật — tránh mất data học sinh đã nộp bài.</div>
+        </div>
+        <div class="tip-card">
+            <div class="tip-head">🌱 Scale sau này</div>
+            <div class="tip-body">Khi cần analytics: thêm bảng <code>ASSIGNMENT_STATS</code> để cache điểm trung bình,
+                tỉ lệ hoàn thành. Đừng query aggregation trực tiếp trên STUDENT_ANSWER khi data lớn.</div>
+        </div>
+    </div>
+
+    <!-- Verdict -->
+    <div class="verdict">
+        <div class="v-big">A+</div>
+        <div class="v-right">
+            <h2>Schema hoàn chỉnh — không còn gì cần sửa trước khi build</h2>
+            <p>
+                Sau 5 vòng iteration, schema đã giải quyết toàn bộ vấn đề cốt lõi.<br>
+                <span class="pill g">Auth ✓</span>
+                <span class="pill g">Multi-role ✓</span>
+                <span class="pill g">Shadowing ✓</span>
+                <span class="pill g">Grading ✓</span>
+                <span class="pill g">Notification ✓</span>
+                <span class="pill g">Audit trail ✓</span>
+                <br><br>
+                3 gợi ý còn lại <span class="pill b">deep-link</span> <span class="pill b">soft delete</span> <span
+                    class="pill b">per-answer score</span> là feature enhancement — có thể thêm ở bất kỳ sprint nào mà
+                không cần restructure.
+                <br><br>
+                <strong style="color:var(--green)">Viết migration đi thôi.</strong>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'default', er: { diagramPadding: 40 } });
+    </script>
+</body>
+
+</html>
