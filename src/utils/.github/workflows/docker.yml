@@ -33,7 +33,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            docker pull ${{ secrets.DOCKER_USERNAME }}/learnhub-api
-            docker stop learnhub-api || true
-            docker rm learnhub-api || true
-            docker run -d -p 3000:3000 --name learnhub-api ${{ secrets.DOCKER_USERNAME }}/learnhub-api
+            docker pull ${{ secrets.DOCKER_USERNAME }}/express-shadowing-api 
+            docker stop express-shadowing-api  || true
+            docker rm express-shadowing-api || true
+            docker run -d -p 3000:3000 --name express-shadowing-api ${{ secrets.DOCKER_USERNAME }}/express-shadowing-api
