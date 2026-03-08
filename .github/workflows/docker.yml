@@ -20,11 +20,11 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/learnhub-api .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/express-shadowing-api .
 
       - name: Push image
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/learnhub-api
+          docker push ${{ secrets.DOCKER_USERNAME }}/express-shadowing-api
 
       - name: Deploy to server
         uses: appleboy/ssh-action@v1
