@@ -22,7 +22,7 @@ app.get('/health', (req, res) => {
 });
 app.get('/hello', (req, res) => {
     logger.info('Hello endpoint accessed');
-    res.json({ status: 'OK', message: 'Hello, World!' });
+    res.json({ status: 'OK', message: 'Hello World!' });
 });
 // 404 handler
 app.use((req, res) => {
