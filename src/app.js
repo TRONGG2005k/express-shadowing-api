@@ -16,11 +16,11 @@ app.use((req, res, next) => {
 app.use('/api', routes);
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/api/health', (req, res) => {
     logger.info('Health check endpoint accessed');
     res.json({ status: 'OK', message: 'Server is running' });
 });
-app.get('/hello', (req, res) => {
+app.get('/api/hello', (req, res) => {
     logger.info('Hello endpoint accessed');
     res.json({ status: 'OK', message: 'Hello World!' });
 });
