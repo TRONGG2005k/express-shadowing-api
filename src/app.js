@@ -20,7 +20,10 @@ app.get('/health', (req, res) => {
     logger.info('Health check endpoint accessed');
     res.json({ status: 'OK', message: 'Server is running' });
 });
-
+app.get('/hello', (req, res) => {
+    logger.info('Hello endpoint accessed');
+    res.json({ status: 'OK', message: 'Hello, World!' });
+});
 // 404 handler
 app.use((req, res) => {
     logger.warn(`Route not found: ${req.method} ${req.url}`);
