@@ -36,4 +36,4 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/express-shadowing-api 
             docker stop express-shadowing-api  || true
             docker rm express-shadowing-api || true
-            docker run -d -p 3000:3000 --name express-shadowing-api ${{ secrets.DOCKER_USERNAME }}/express-shadowing-api
+            docker run -d -p 3000:3000 --name express-shadowing-api --env-file /home/${{ secrets.SERVER_USER }}/app/.env ${{ secrets.DOCKER_USERNAME }}/express-shadowing-api
