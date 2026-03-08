@@ -1,5 +1,6 @@
 const express = require('express');
 const routes = require('./modules');
+const logger = require('./utils/logger');
 
 const app = express();
 
