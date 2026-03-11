@@ -1,6 +1,7 @@
 const express = require('express');
 const routes = require('./modules');
 const logger = require('./utils/logger');
+const { prisma } = require('./config/prisma');
 
 const app = express();
 
@@ -20,7 +21,7 @@ app.get('/api/health', (req, res) => {
     logger.info('Health check endpoint accessed');
     res.json({ status: 'OK', message: 'Server is running' });
 });
-app.get('/api/hello', (req, res) => {
+app.get('/api/hello', async (req, res) => {
     logger.info('Hello endpoint accessed');
     res.json({ status: 'OK', message: 'Hello World!' });
 });

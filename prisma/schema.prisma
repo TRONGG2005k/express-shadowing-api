@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  output   = "../generated/prisma"
 }
 
 datasource db {
@@ -16,6 +16,7 @@ model assignment {
   due_date         DateTime?          @db.Timestamp(6)
   created_at       DateTime?          @default(now()) @db.Timestamp(6)
   updated_at       DateTime?          @default(now()) @db.Timestamp(6)
+  deleted_at       DateTime?          @db.Timestamp(6)
   teacher          teacher            @relation(fields: [created_by], references: [id], onUpdate: NoAction)
   assignment_class assignment_class[]
   question         question[]
@@ -41,6 +42,7 @@ model Renamedclass {
   teacher_id       BigInt
   created_at       DateTime?          @default(now()) @db.Timestamp(6)
   updated_at       DateTime?          @default(now()) @db.Timestamp(6)
+  deleted_at       DateTime?          @db.Timestamp(6)
   assignment_class assignment_class[]
   teacher          teacher            @relation(fields: [teacher_id], references: [id], onUpdate: NoAction)
   student_class    student_class[]
@@ -89,6 +91,7 @@ model question {
   type                       question_type
   order_index                Int?                         @default(0)
   created_at                 DateTime?                    @default(now()) @db.Timestamp(6)
+  deleted_at                 DateTime?                    @db.Timestamp(6)
   exercise_result            exercise_result[]
   fill_blank_detail          fill_blank_detail?
   assignment                 assignment                   @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -129,6 +132,7 @@ model student {
   dob           DateTime?       @db.Date
   created_at    DateTime?       @default(now()) @db.Timestamp(6)
   updated_at    DateTime?       @default(now()) @db.Timestamp(6)
+  deleted_at    DateTime?       @db.Timestamp(6)
   student_class student_class[]
 }
 
@@ -163,6 +167,7 @@ model teacher {
   bio                String?
   created_at         DateTime?            @default(now()) @db.Timestamp(6)
   updated_at         DateTime?            @default(now()) @db.Timestamp(6)
+  deleted_at         DateTime?            @db.Timestamp(6)
   assignment         assignment[]
   Renamedclass       Renamedclass[]
   shadowing_result   shadowing_result[]
@@ -189,7 +194,6 @@ model text_question_detail {
   question      question  @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model user_exercise {
   id              BigInt            @id @default(autoincrement())
   user_id         BigInt
@@ -198,6 +202,7 @@ model user_exercise {
   score           Decimal?          @db.Decimal(5, 2)
   submitted_at    DateTime?         @db.Timestamp(6)
   created_at      DateTime?         @default(now()) @db.Timestamp(6)
+  deleted_at      DateTime?         @db.Timestamp(6)
   exercise_result exercise_result[]
   student_video   student_video[]
   assignment      assignment        @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
@@ -218,6 +223,7 @@ model users {
   is_active     Boolean?        @default(true)
   created_at    DateTime?       @default(now()) @db.Timestamp(6)
   updated_at    DateTime?       @default(now()) @db.Timestamp(6)
+  deleted_at    DateTime?       @db.Timestamp(6)
   user_exercise user_exercise[]
   vocabulary    vocabulary[]
 }
@@ -245,6 +251,7 @@ model vocabulary {
   created_by                 BigInt
   created_at                 DateTime?                    @default(now()) @db.Timestamp(6)
   updated_at                 DateTime?                    @default(now()) @db.Timestamp(6)
+  deleted_at                 DateTime?                    @db.Timestamp(6)
   users                      users                        @relation(fields: [created_by], references: [id], onUpdate: NoAction)
   vocabulary_question_detail vocabulary_question_detail[]
 }
