@@ -1,0 +1,316 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model assignment {
+  id               BigInt             @id @default(autoincrement())
+  title            String             @db.VarChar(200)
+  description      String?
+  type             assignment_type
+  created_by       BigInt
+  due_date         DateTime?          @db.Timestamp(6)
+  created_at       DateTime?          @default(now()) @db.Timestamp(6)
+  updated_at       DateTime?          @default(now()) @db.Timestamp(6)
+  teacher          teacher            @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  assignment_class assignment_class[]
+  question         question[]
+  user_exercise    user_exercise[]
+}
+
+model assignment_class {
+  id            BigInt       @id @default(autoincrement())
+  assignment_id BigInt
+  class_id      BigInt
+  assignment    assignment   @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  Renamedclass  Renamedclass @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([assignment_id, class_id])
+  @@index([class_id, assignment_id], map: "idx_assignment_class_class_assignment")
+}
+
+/// This model has been renamed to 'Renamedclass' during introspection, because the original name 'class' is reserved.
+model Renamedclass {
+  id               BigInt             @id @default(autoincrement())
+  name             String             @db.VarChar(100)
+  description      String?
+  teacher_id       BigInt
+  created_at       DateTime?          @default(now()) @db.Timestamp(6)
+  updated_at       DateTime?          @default(now()) @db.Timestamp(6)
+  assignment_class assignment_class[]
+  teacher          teacher            @relation(fields: [teacher_id], references: [id], onUpdate: NoAction)
+  student_class    student_class[]
+
+  @@index([teacher_id], map: "idx_class_teacher")
+  @@map("class")
+}
+
+model exercise_result {
+  id                 BigInt               @id @default(autoincrement())
+  user_exercise_id   BigInt
+  question_id        BigInt
+  created_at         DateTime?            @default(now()) @db.Timestamp(6)
+  question           question             @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_exercise      user_exercise        @relation(fields: [user_exercise_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  fill_blank_result  fill_blank_result[]
+  shadowing_result   shadowing_result[]
+  text_answer_result text_answer_result[]
+  vocabulary_result  vocabulary_result[]
+
+  @@unique([user_exercise_id, question_id])
+}
+
+model fill_blank_detail {
+  id             BigInt    @id @default(autoincrement())
+  question_id    BigInt    @unique
+  sentence       String
+  correct_answer String    @db.VarChar(255)
+  hint           String?   @db.VarChar(255)
+  created_at     DateTime? @default(now()) @db.Timestamp(6)
+  question       question  @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model fill_blank_result {
+  id                 BigInt          @id @default(autoincrement())
+  exercise_result_id BigInt
+  answer_text        String?
+  is_correct         Boolean?
+  created_at         DateTime?       @default(now()) @db.Timestamp(6)
+  exercise_result    exercise_result @relation(fields: [exercise_result_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model question {
+  id                         BigInt                       @id @default(autoincrement())
+  assignment_id              BigInt
+  type                       question_type
+  order_index                Int?                         @default(0)
+  created_at                 DateTime?                    @default(now()) @db.Timestamp(6)
+  exercise_result            exercise_result[]
+  fill_blank_detail          fill_blank_detail?
+  assignment                 assignment                   @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  shadowing_detail           shadowing_detail?
+  student_video              student_video[]
+  text_question_detail       text_question_detail?
+  video_question_detail      video_question_detail?
+  vocabulary_question_detail vocabulary_question_detail[]
+
+  @@index([assignment_id], map: "idx_question_assignment")
+}
+
+model shadowing_detail {
+  id          BigInt    @id @default(autoincrement())
+  question_id BigInt    @unique
+  script      String
+  audio_url   String    @db.VarChar(500)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  question    question  @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model shadowing_result {
+  id                  BigInt          @id @default(autoincrement())
+  exercise_result_id  BigInt
+  pronunciation_score Decimal?        @db.Decimal(5, 2)
+  fluency_score       Decimal?        @db.Decimal(5, 2)
+  teacher_score       Decimal?        @db.Decimal(5, 2)
+  teacher_comment     String?
+  graded_by           BigInt?
+  created_at          DateTime?       @default(now()) @db.Timestamp(6)
+  exercise_result     exercise_result @relation(fields: [exercise_result_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  teacher             teacher?        @relation(fields: [graded_by], references: [id], onUpdate: NoAction)
+}
+
+model student {
+  id            BigInt          @id @default(autoincrement())
+  full_name     String          @db.VarChar(100)
+  dob           DateTime?       @db.Date
+  created_at    DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at    DateTime?       @default(now()) @db.Timestamp(6)
+  student_class student_class[]
+}
+
+model student_class {
+  id           BigInt       @id @default(autoincrement())
+  student_id   BigInt
+  class_id     BigInt
+  joined_at    DateTime?    @default(now()) @db.Timestamp(6)
+  Renamedclass Renamedclass @relation(fields: [class_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  student      student      @relation(fields: [student_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([student_id, class_id])
+  @@index([class_id], map: "idx_student_class_class")
+}
+
+model student_video {
+  id               BigInt        @id @default(autoincrement())
+  user_exercise_id BigInt
+  question_id      BigInt
+  name             String?       @db.VarChar(200)
+  video_url        String?       @db.VarChar(500)
+  created_at       DateTime?     @default(now()) @db.Timestamp(6)
+  question         question      @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  user_exercise    user_exercise @relation(fields: [user_exercise_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_exercise_id, question_id])
+}
+
+model teacher {
+  id                 BigInt               @id @default(autoincrement())
+  full_name          String               @db.VarChar(100)
+  bio                String?
+  created_at         DateTime?            @default(now()) @db.Timestamp(6)
+  updated_at         DateTime?            @default(now()) @db.Timestamp(6)
+  assignment         assignment[]
+  Renamedclass       Renamedclass[]
+  shadowing_result   shadowing_result[]
+  text_answer_result text_answer_result[]
+}
+
+model text_answer_result {
+  id                 BigInt          @id @default(autoincrement())
+  exercise_result_id BigInt
+  answer_text        String?
+  teacher_score      Decimal?        @db.Decimal(5, 2)
+  teacher_comment    String?
+  graded_by          BigInt?
+  created_at         DateTime?       @default(now()) @db.Timestamp(6)
+  exercise_result    exercise_result @relation(fields: [exercise_result_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  teacher            teacher?        @relation(fields: [graded_by], references: [id], onUpdate: NoAction)
+}
+
+model text_question_detail {
+  id            BigInt    @id @default(autoincrement())
+  question_id   BigInt    @unique
+  question_text String
+  created_at    DateTime? @default(now()) @db.Timestamp(6)
+  question      question  @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model user_exercise {
+  id              BigInt            @id @default(autoincrement())
+  user_id         BigInt
+  assignment_id   BigInt
+  status          exercise_status?  @default(pending)
+  score           Decimal?          @db.Decimal(5, 2)
+  submitted_at    DateTime?         @db.Timestamp(6)
+  created_at      DateTime?         @default(now()) @db.Timestamp(6)
+  exercise_result exercise_result[]
+  student_video   student_video[]
+  assignment      assignment        @relation(fields: [assignment_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users           users             @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, assignment_id])
+  @@index([assignment_id], map: "idx_user_exercise_assignment")
+}
+
+model users {
+  id            BigInt          @id @default(autoincrement())
+  username      String          @db.VarChar(100)
+  phone         String          @unique @db.VarChar(20)
+  password_hash String          @db.VarChar(255)
+  role          user_role
+  ref_id        BigInt?
+  ref_type      ref_type?
+  is_active     Boolean?        @default(true)
+  created_at    DateTime?       @default(now()) @db.Timestamp(6)
+  updated_at    DateTime?       @default(now()) @db.Timestamp(6)
+  user_exercise user_exercise[]
+  vocabulary    vocabulary[]
+}
+
+model video_question_detail {
+  id          BigInt    @id @default(autoincrement())
+  question_id BigInt    @unique
+  prompt_text String?
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  question    question  @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model vocabulary {
+  id                         BigInt                       @id @default(autoincrement())
+  word                       String                       @unique @db.VarChar(100)
+  type                       vocabulary_type
+  topic                      String?                      @db.VarChar(100)
+  phonetic                   String?                      @db.VarChar(100)
+  meaning_vi                 String
+  explanation                String?
+  example_sentence           String?
+  example_translation        String?
+  audio_url                  String?                      @db.VarChar(500)
+  image_url                  String?                      @db.VarChar(500)
+  created_by                 BigInt
+  created_at                 DateTime?                    @default(now()) @db.Timestamp(6)
+  updated_at                 DateTime?                    @default(now()) @db.Timestamp(6)
+  users                      users                        @relation(fields: [created_by], references: [id], onUpdate: NoAction)
+  vocabulary_question_detail vocabulary_question_detail[]
+}
+
+model vocabulary_question_detail {
+  id            BigInt     @id @default(autoincrement())
+  question_id   BigInt
+  vocabulary_id BigInt
+  order_index   Int?       @default(0)
+  question      question   @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  vocabulary    vocabulary @relation(fields: [vocabulary_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([question_id, vocabulary_id])
+}
+
+model vocabulary_result {
+  id                 BigInt          @id @default(autoincrement())
+  exercise_result_id BigInt
+  vocabulary_id      BigInt
+  answer_text        String?         @db.VarChar(255)
+  is_correct         Boolean?
+  created_at         DateTime?       @default(now()) @db.Timestamp(6)
+  exercise_result    exercise_result @relation(fields: [exercise_result_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([vocabulary_id], map: "idx_vocab_result_vocab")
+}
+
+enum assignment_type {
+  fill_blank
+  vocabulary
+  shadowing
+  mixed
+}
+
+enum exercise_status {
+  pending
+  in_progress
+  submitted
+  graded
+}
+
+enum question_type {
+  fill_blank
+  vocabulary
+  shadowing
+  text_answer
+  video_answer
+}
+
+enum ref_type {
+  student
+  teacher
+  admin
+}
+
+enum user_role {
+  admin
+  teacher
+  student
+}
+
+enum vocabulary_type {
+  noun
+  verb
+  adjective
+  adverb
+  phrase
+}

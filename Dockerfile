@@ -9,6 +9,7 @@ RUN npm install
 
 COPY . .
 
+RUN npx prisma generate
 
 # ===== Stage 2: production =====
 FROM node:20-alpine
