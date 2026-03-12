@@ -226,6 +226,8 @@ model users {
   deleted_at    DateTime?       @db.Timestamp(6)
   user_exercise user_exercise[]
   vocabulary    vocabulary[]
+
+  @@unique([ref_id, ref_type])
 }
 
 model video_question_detail {
