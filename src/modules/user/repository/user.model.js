@@ -1,3 +1,5 @@
+const logger = require('../../../utils/logger');
+
 // User Model - Simulating database operations with in-memory storage
 class User {
     constructor(id, username, email, password, fullName) {
@@ -18,9 +20,12 @@ let users = [
 ];
 let nextId = 3;
 
+logger.info(`[UserModel] Khởi tạo model với ${users.length} users mặc định`);
+
 const UserModel = {
     // Get all users
     getAll() {
+        logger.info(`[UserModel] [getAll] Lấy danh sách users | Tổng số: ${users.length}`);
         return users.map(user => ({
             id: user.id,
             username: user.username,
@@ -32,8 +37,13 @@ const UserModel = {
 
     // Get user by ID
     getById(id) {
+        logger.info(`[UserModel] [getById] Tìm user | ID: ${id}`);
         const user = users.find(u => u.id === parseInt(id));
-        if (!user) return null;
+        if (!user) {
+            logger.warn(`[UserModel] [getById] Không tìm thấy user | ID: ${id}`);
+            return null;
+        }
+        logger.info(`[UserModel] [getById] Tìm thấy user | ID: ${id} | Username: ${user.username}`);
         return {
             id: user.id,
             username: user.username,
@@ -45,11 +55,19 @@ const UserModel = {
 
     // Get user by username (for authentication)
     getByUsername(username) {
-        return users.find(u => u.username === username);
+        logger.info(`[UserModel] [getByUsername] Tìm user | Username: ${username}`);
+        const user = users.find(u => u.username === username);
+        if (!user) {
+            logger.warn(`[UserModel] [getByUsername] Không tìm thấy user | Username: ${username}`);
+            return null;
+        }
+        logger.info(`[UserModel] [getByUsername] Tìm thấy user | Username: ${username} | ID: ${user.id}`);
+        return user;
     },
 
     // Create new user
     create(userData) {
+        logger.info(`[UserModel] [create] Tạo user mới | Username: ${userData.username}`);
         const newUser = new User(
             nextId++,
             userData.username,
@@ -58,6 +76,7 @@ const UserModel = {
             userData.fullName
         );
         users.push(newUser);
+        logger.info(`[UserModel] [create] Tạo user thành công | ID: ${newUser.id} | Username: ${newUser.username}`);
         return {
             id: newUser.id,
             username: newUser.username,
@@ -69,14 +88,20 @@ const UserModel = {
 
     // Update user
     update(id, userData) {
+        logger.info(`[UserModel] [update] Cập nhật user | ID: ${id}`);
         const index = users.findIndex(u => u.id === parseInt(id));
-        if (index === -1) return null;
+        if (index === -1) {
+            logger.warn(`[UserModel] [update] Không tìm thấy user để cập nhật | ID: ${id}`);
+            return null;
+        }
 
+        const oldUsername = users[index].username;
         users[index] = {
             ...users[index],
             ...userData,
             updatedAt: new Date()
         };
+        logger.info(`[UserModel] [update] Cập nhật user thành công | ID: ${id} | Username: ${oldUsername} -> ${users[index].username}`);
         return {
             id: users[index].id,
             username: users[index].username,
@@ -88,9 +113,15 @@ const UserModel = {
 
     // Delete user
     delete(id) {
+        logger.info(`[UserModel] [delete] Xóa user | ID: ${id}`);
         const index = users.findIndex(u => u.id === parseInt(id));
-        if (index === -1) return false;
+        if (index === -1) {
+            logger.warn(`[UserModel] [delete] Không tìm thấy user để xóa | ID: ${id}`);
+            return false;
+        }
+        const deletedUser = users[index];
         users.splice(index, 1);
+        logger.info(`[UserModel] [delete] Xóa user thành công | ID: ${id} | Username: ${deletedUser.username}`);
         return true;
     }
 };

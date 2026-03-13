@@ -2,6 +2,8 @@ const express = require('express');
 const routes = require('./modules');
 const logger = require('./utils/logger');
 const { prisma } = require('./config/prisma');
+const errorHandler = require('./error/middleware/error_handler');
+const { z } = require('zod');
 
 const app = express();
 
@@ -31,10 +33,21 @@ app.use((req, res) => {
     res.status(404).json({ message: 'Route not found' });
 });
 
-// Error handler
+// Zod validation error handler
 app.use((err, req, res, next) => {
-    logger.error('Internal server error: ' + err.stack);
-    res.status(500).json({ message: 'Internal server error', error: err.message });
+    if (err instanceof z.ZodError) {
+        logger.error(`Zod validation error: ${JSON.stringify(err.errors)}`);
+        return res.status(400).json({
+            message: 'Dữ liệu không hợp lệ',
+            status: 400,
+            error_code: 'E99998',
+            errors: err.errors
+        });
+    }
+    next(err);
 });
+
+// Global error handler
+app.use(errorHandler);
 
 module.exports = app;
