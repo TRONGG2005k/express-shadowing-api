@@ -1,85 +1,101 @@
 const express = require('express');
 const vocabularyController = require('./controller/vocabulary.controller');
+const logger = require('../../utils/logger');
 
 const router = express.Router();
+
+logger.info('[VocabularyRoute] Đang khởi tạo vocabulary routes...');
 
 /**
  * @route   GET /api/vocabularies
  * @desc    Lấy danh sách từ vựng (có filter, pagination)
- * @query   {number} page - Trang hiện tại (default: 1)
- * @query   {number} limit - Số item mỗi trang (default: 10, max: 100)
- * @query   {string} search - Từ khóa tìm kiếm (tìm trong word và meaning_vi)
- * @query   {string} type - Loại từ: noun, verb, adjective, adverb, phrase
- * @query   {string} topic - Chủ đề
- * @query   {string} sortBy - Sắp xếp theo: word, created_at, updated_at (default: created_at)
- * @query   {string} order - Thứ tự: asc, desc (default: desc)
  * @access  Public
  */
-router.get('/', (req, res) => vocabularyController.getAll(req, res));
+router.get('/', async (req, res, next) => {
+    logger.info(`[VocabularyRoute] [GET /vocabularies] Request | Query: ${JSON.stringify(req.query)} | IP: ${req.ip}`);
+    await vocabularyController.getAll(req, res, next);
+});
 
 /**
  * @route   GET /api/vocabularies/topics
  * @desc    Lấy danh sách tất cả chủ đề (topics)
  * @access  Public
  */
-router.get('/topics', (req, res) => vocabularyController.getTopics(req, res));
+router.get('/topics', async (req, res, next) => {
+    logger.info(`[VocabularyRoute] [GET /vocabularies/topics] Request | IP: ${req.ip}`);
+    await vocabularyController.getTopics(req, res, next);
+});
 
 /**
  * @route   GET /api/vocabularies/search
  * @desc    Tìm kiếm từ vựng theo word chính xác
- * @query   {string} word - Từ cần tìm
  * @access  Public
  */
-router.get('/search', (req, res) => vocabularyController.searchByWord(req, res));
+router.get('/search', async (req, res, next) => {
+    logger.info(`[VocabularyRoute] [GET /vocabularies/search] Request | Word: ${req.query.word} | IP: ${req.ip}`);
+    await vocabularyController.searchByWord(req, res, next);
+});
 
 /**
  * @route   POST /api/vocabularies/batch
  * @desc    Tạo nhiều từ vựng cùng lúc
- * @body    {array} items - Danh sách từ vựng
- * @body    {bigint} created_by - ID ngườI tạo
  * @access  Private (Admin/Teacher)
  */
-router.post('/batch', (req, res) => vocabularyController.createBatch(req, res));
+router.post('/batch', async (req, res, next) => {
+    logger.info(`[VocabularyRoute] [POST /vocabularies/batch] Request | Số lượng: ${req.body.items?.length || 0} | IP: ${req.ip}`);
+    await vocabularyController.createBatch(req, res, next);
+});
 
 /**
  * @route   GET /api/vocabularies/:id
  * @desc    Lấy chi tiết từ vựng theo ID
- * @param   {bigint} id - ID từ vựng
  * @access  Public
  */
-router.get('/:id', (req, res) => vocabularyController.getById(req, res));
+router.get('/:id', async (req, res, next) => {
+    logger.info(`[VocabularyRoute] [GET /vocabularies/:id] Request | ID: ${req.params.id} | IP: ${req.ip}`);
+    await vocabularyController.getById(req, res, next);
+});
 
 /**
  * @route   POST /api/vocabularies
  * @desc    Tạo mới từ vựng
- * @body    {VocabularyCreate} data - Dữ liệu từ vựng
  * @access  Private (Admin/Teacher)
  */
-router.post('/', (req, res) => vocabularyController.create(req, res));
+router.post('/', async (req, res, next) => {
+    logger.info(`[VocabularyRoute] [POST /vocabularies] Request | Word: ${req.body.word} | IP: ${req.ip}`);
+    await vocabularyController.create(req, res, next);
+});
 
 /**
  * @route   PUT /api/vocabularies/:id
  * @desc    Cập nhật từ vựng
- * @param   {bigint} id - ID từ vựng
- * @body    {VocabularyUpdate} data - Dữ liệu cập nhật
  * @access  Private (Admin/Teacher)
  */
-router.put('/:id', (req, res) => vocabularyController.update(req, res));
+router.put('/:id', async (req, res, next) => {
+    logger.info(`[VocabularyRoute] [PUT /vocabularies/:id] Request | ID: ${req.params.id} | IP: ${req.ip}`);
+    await vocabularyController.update(req, res, next);
+});
 
 /**
  * @route   DELETE /api/vocabularies/:id
  * @desc    Xóa mềm từ vựng
- * @param   {bigint} id - ID từ vựng
  * @access  Private (Admin/Teacher)
  */
-router.delete('/:id', (req, res) => vocabularyController.delete(req, res));
+router.delete('/:id', async (req, res, next) => {
+    logger.info(`[VocabularyRoute] [DELETE /vocabularies/:id] Request | ID: ${req.params.id} | IP: ${req.ip}`);
+    await vocabularyController.delete(req, res, next);
+});
 
 /**
  * @route   DELETE /api/vocabularies/:id/hard
  * @desc    Xóa cứng từ vựng (xóa vĩnh viễn)
- * @param   {bigint} id - ID từ vựng
  * @access  Private (Admin only)
  */
-router.delete('/:id/hard', (req, res) => vocabularyController.hardDelete(req, res));
+router.delete('/:id/hard', async (req, res, next) => {
+    logger.info(`[VocabularyRoute] [DELETE /vocabularies/:id/hard] Request HARD DELETE | ID: ${req.params.id} | IP: ${req.ip}`);
+    await vocabularyController.hardDelete(req, res, next);
+});
+
+logger.info('[VocabularyRoute] Khởi tạo vocabulary routes thành công');
 
 module.exports = router;
