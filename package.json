@@ -4,7 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "devStart": "nodemon server.js"
+    "devStart": "nodemon server.js",
+    "test": "jest",
+    "test:unit": "jest tests/unit",
+    "test:integration": "jest tests/integration",
+    "test:student": "jest tests/unit/student",
+    "test:teacher": "jest tests/unit/teacher",
+    "test:class": "jest tests/unit/class",
+    "test:coverage": "jest --coverage",
+    "test:watch": "jest --watch"
   },
   "keywords": [],
   "author": "",
@@ -19,8 +27,11 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@jest/globals": "^30.3.0",
     "@types/pg": "^8.18.0",
+    "jest": "^30.3.0",
     "nodemon": "^3.1.14",
-    "prisma": "^7.4.2"
+    "prisma": "^7.4.2",
+    "supertest": "^7.2.2"
   }
 }
