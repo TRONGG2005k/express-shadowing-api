@@ -1,3 +1,8 @@
+// Fix BigInt serialization issue for JSON.stringify
+BigInt.prototype.toJSON = function () {
+    return this.toString();
+};
+
 const app = require('./src/app');
 require('dotenv').config();
 const PORT = process.env.PORT || 3000;
