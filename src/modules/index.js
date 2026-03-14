@@ -4,11 +4,16 @@ const vocabularyRoutes = require('./vocabulary/vocabulary.route');
 const studentRoutes = require('./student/student.route');
 const teacherRoutes = require('./teacher/teacher.route');
 const classRoutes = require('./class/class.route');
+const authRoutes = require('./auth/auth.route');
 const logger = require('../utils/logger');
 
 const router = express.Router();
 
 logger.info('[Module] Đang khởi tạo routes cho các module...');
+
+// Mount auth routes
+logger.info('[Module] Mount route: /auth');
+router.use('/auth', authRoutes);
 
 // Mount user routes
 logger.info('[Module] Mount route: /users');

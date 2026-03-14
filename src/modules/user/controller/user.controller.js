@@ -133,6 +133,27 @@ class UserController {
             next(err);
         }
     }
+
+    /**
+     * POST /api/users/with-ref
+     * Tạo user với ref_id và ref_type bắt buộc
+     */
+    async createWithRef(req, res, next) {
+        try {
+            logger.info(`[UserController] [createWithRef] Bắt đầu | Data: ${JSON.stringify(req.body)}`);
+
+            const user = await userService.createWithRef(req.body);
+
+            logger.info(`[UserController] [createWithRef] Thành công | ID: ${user.id}`);
+            return res.status(201).json({
+                success: true,
+                message: 'Tạo user với tham chiếu thành công',
+                data: user
+            });
+        } catch (err) {
+            next(err);
+        }
+    }
 }
 
 module.exports = new UserController();

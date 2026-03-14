@@ -227,8 +227,24 @@ model users {
   deleted_at    DateTime?       @db.Timestamp(6)
   user_exercise user_exercise[]
   vocabulary    vocabulary[]
+  refresh_tokens refresh_token[]
 
   @@unique([ref_id, ref_type])
+}
+
+model refresh_token {
+  id          String    @id @default(uuid())
+  jtid        String    @unique @db.Uuid
+  token       String    @db.Text
+  user_id     BigInt
+  expires_at  DateTime  @db.Timestamp(6)
+  created_at  DateTime? @default(now()) @db.Timestamp(6)
+  updated_at  DateTime? @default(now()) @db.Timestamp(6)
+  
+  user        users     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  
+  @@index([user_id], map: "idx_refresh_token_user")
+  @@index([jtid], map: "idx_refresh_token_jtid")
 }
 
 model video_question_detail {

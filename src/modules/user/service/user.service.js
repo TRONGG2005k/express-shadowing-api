@@ -1,8 +1,14 @@
+const bcrypt = require('bcrypt');
 const userRepository = require('../repository/user.repository');
-const { CreateUserDto, UpdateUserDto, UserQueryDto, UserIdParamDto } = require('../dto/create-user.dto');
+const studentRepository = require('../../student/repository/student.repository');
+const teacherRepository = require('../../teacher/repository/teacher.repository');
+const { CreateUserDto, UpdateUserDto, UserQueryDto, UserIdParamDto, CreateUserWithRefDto } = require('../dto/create-user.dto');
 const AppException = require('../../../error/exception/AppException');
 const errorMessages = require('../../../error/error.message');
 const logger = require('../../../utils/logger');
+
+// Cấu hình bcrypt
+const SALT_ROUNDS = 10;
 
 /**
  * Service xử lý business logic cho User
@@ -73,6 +79,56 @@ class UserService {
     }
 
     /**
+     * Kiểm tra ref_id có tồn tại trong bảng tương ứng không
+     * @param {string} refType - Loại tham chiếu (student, teacher, admin)
+     * @param {bigint} refId - ID tham chiếu
+     */
+    async validateRefId(refType, refId) {
+        if (!refType || !refId) {
+            return;
+        }
+
+        logger.info(`[UserService] [validateRefId] Kiểm tra | ref_type: ${refType}, ref_id: ${refId}`);
+
+        let exists = false;
+        let entityName = '';
+
+        switch (refType) {
+            case 'student':
+                const student = await studentRepository.findById(refId);
+                exists = !!student;
+                entityName = 'học sinh';
+                break;
+            case 'teacher':
+                const teacher = await teacherRepository.findById(refId);
+                exists = !!teacher;
+                entityName = 'giáo viên';
+                break;
+            case 'admin':
+                // Admin không cần kiểm tra ref_id
+                exists = true;
+                break;
+            default:
+                throw new AppException({
+                    message: `Ref type "${refType}" không hợp lệ`,
+                    statusCode: 400,
+                    errorCode: 'E10010'
+                });
+        }
+
+        if (!exists) {
+            logger.warn(`[UserService] [validateRefId] Không tìm thấy ${entityName} | ref_id: ${refId}`);
+            throw new AppException({
+                message: `Tài khoản phải thuộc về một ngườii sở hữu. Không tìm thấy ${entityName} với ID: ${refId}`,
+                statusCode: 404,
+                errorCode: 'E10011'
+            });
+        }
+
+        logger.info(`[UserService] [validateRefId] Hợp lệ | ${entityName} tồn tại`);
+    }
+
+    /**
      * Tạo mới user
      */
     async create(data) {
@@ -103,12 +159,17 @@ class UserService {
             });
         }
 
-        // TODO: Hash password ở đây nếu cần
-        // const passwordHash = await bcrypt.hash(validatedData.password, 10);
+        // Kiểm tra ref_id có tồn tại không nếu có ref_type
+        if (validatedData.ref_type && validatedData.ref_id) {
+            await this.validateRefId(validatedData.ref_type, validatedData.ref_id);
+        }
+
+        // Hash password trước khi lưu
+        const passwordHash = await bcrypt.hash(validatedData.password, SALT_ROUNDS);
 
         const created = await userRepository.create({
             ...validatedData,
-            password_hash: validatedData.password // Thay bằng passwordHash nếu đã hash
+            password_hash: passwordHash
         });
 
         logger.info(`[UserService] [create] Thành công | ID: ${created.id}`);
@@ -163,12 +224,24 @@ class UserService {
             }
         }
 
+        // Kiểm tra ref_id có tồn tại không nếu có ref_type thay đổi
+        const refTypeChanged = validatedData.ref_type !== undefined && validatedData.ref_type !== existing.ref_type;
+        const refIdChanged = validatedData.ref_id !== undefined && validatedData.ref_id !== existing.ref_id;
+
+        if (refTypeChanged || refIdChanged) {
+            const refTypeToValidate = validatedData.ref_type !== undefined ? validatedData.ref_type : existing.ref_type;
+            const refIdToValidate = validatedData.ref_id !== undefined ? validatedData.ref_id : existing.ref_id;
+
+            if (refTypeToValidate && refIdToValidate) {
+                await this.validateRefId(refTypeToValidate, refIdToValidate);
+            }
+        }
+
         // Xử lý password nếu có cập nhật
         let passwordHash = undefined;
         if (validatedData.password) {
-            // TODO: Hash password nếu cần
-            // passwordHash = await bcrypt.hash(validatedData.password, 10);
-            passwordHash = validatedData.password;
+            // Hash password trước khi lưu
+            passwordHash = await bcrypt.hash(validatedData.password, SALT_ROUNDS);
         }
 
         const updated = await userRepository.update(id, {
@@ -235,6 +308,53 @@ class UserService {
      */
     async delete(id) {
         return this.softDelete(id);
+    }
+
+    /**
+     * Tạo user với ref_id và ref_type bắt buộc
+     * Dùng khi tạo user liên kết với student/teacher cụ thể
+     */
+    async createWithRef(data) {
+        logger.info(`[UserService] [createWithRef] Bắt đầu | Username: ${data?.username}, ref_type: ${data?.ref_type}, ref_id: ${data?.ref_id}`);
+
+        // Validate data với CreateUserWithRefDto (ref_id và ref_type bắt buộc)
+        const validatedData = CreateUserWithRefDto.parse(data);
+
+        // Kiểm tra username đã tồn tại chưa
+        const usernameExists = await userRepository.existsByUsername(validatedData.username);
+        if (usernameExists) {
+            logger.warn(`[UserService] [createWithRef] Username đã tồn tại | Username: ${validatedData.username}`);
+            throw new AppException({
+                message: `Username "${validatedData.username}" đã tồn tại`,
+                statusCode: 409,
+                errorCode: 'E10002'
+            });
+        }
+
+        // Kiểm tra phone đã tồn tại chưa
+        const phoneExists = await userRepository.existsByPhone(validatedData.phone);
+        if (phoneExists) {
+            logger.warn(`[UserService] [createWithRef] Số điện thoại đã tồn tại | Phone: ${validatedData.phone}`);
+            throw new AppException({
+                message: `Số điện thoại "${validatedData.phone}" đã được sử dụng`,
+                statusCode: 409,
+                errorCode: 'E10008'
+            });
+        }
+
+        // Kiểm tra ref_id có tồn tại không (bắt buộc phải có)
+        await this.validateRefId(validatedData.ref_type, validatedData.ref_id);
+
+        // Hash password trước khi lưu
+        const passwordHash = await bcrypt.hash(validatedData.password, SALT_ROUNDS);
+
+        const created = await userRepository.create({
+            ...validatedData,
+            password_hash: passwordHash
+        });
+
+        logger.info(`[UserService] [createWithRef] Thành công | ID: ${created.id} | ref_type: ${created.ref_type} | ref_id: ${created.ref_id}`);
+        return created;
     }
 }
 

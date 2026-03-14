@@ -80,9 +80,44 @@ const UserIdParamDto = z.object({
         .positive('ID phải là số dương')
 });
 
+/**
+ * DTO cho tạo user với ref_id và ref_type bắt buộc
+ * Dùng khi tạo user liên kết với student/teacher cụ thể
+ */
+const CreateUserWithRefDto = z.object({
+    username: z.string()
+        .min(3, 'Username phải có ít nhất 3 ký tự')
+        .max(100, 'Username không được vượt quá 100 ký tự')
+        .regex(/^[a-zA-Z0-9_]+$/, 'Username chỉ được chứa chữ cái, số và dấu gạch dưới'),
+
+    phone: z.string()
+        .min(10, 'Số điện thoại phải có ít nhất 10 ký tự')
+        .max(20, 'Số điện thoại không được vượt quá 20 ký tự')
+        .regex(/^[0-9+\-\s()]*$/, 'Số điện thoại không hợp lệ'),
+
+    password: z.string()
+        .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+        .max(255, 'Mật khẩu không được vượt quá 255 ký tự'),
+
+    role: z.enum(['admin', 'teacher', 'student'], {
+        errorMap: () => ({ message: 'Role phải là admin, teacher hoặc student' })
+    }),
+
+    ref_id: z.coerce.bigint()
+        .positive('ID tham chiếu phải là số dương'),
+
+    ref_type: z.enum(['student', 'teacher', 'admin'], {
+        errorMap: () => ({ message: 'Ref type phải là student, teacher hoặc admin' })
+    }),
+
+    is_active: z.boolean()
+        .default(true)
+});
+
 module.exports = {
     CreateUserDto,
     UpdateUserDto,
     UserQueryDto,
-    UserIdParamDto
+    UserIdParamDto,
+    CreateUserWithRefDto
 };

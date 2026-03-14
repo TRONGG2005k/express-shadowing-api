@@ -66,6 +66,16 @@ router.delete('/:id/hard', async (req, res, next) => {
     await userController.hardDelete(req, res, next);
 });
 
+/**
+ * @route   POST /api/users/with-ref
+ * @desc    Tạo user với ref_id và ref_type bắt buộc
+ * @access  Public
+ */
+router.post('/with-ref', async (req, res, next) => {
+    logger.info(`[UserRoute] [POST /users/with-ref] Request | IP: ${req.ip}`);
+    await userController.createWithRef(req, res, next);
+});
+
 logger.info('[UserRoute] Khởi tạo user routes thành công');
 
 module.exports = router;
