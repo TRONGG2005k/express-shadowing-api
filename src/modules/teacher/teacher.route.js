@@ -66,6 +66,16 @@ router.delete('/:id/hard', async (req, res, next) => {
     await teacherController.hardDelete(req, res, next);
 });
 
+/**
+ * @route   GET /api/teachers/:id/classes
+ * @desc    Lấy danh sách lớp học của giáo viên
+ * @access  Public
+ */
+router.get('/:id/classes', async (req, res, next) => {
+    logger.info(`[TeacherRoute] [GET /teachers/:id/classes] Request | ID: ${req.params.id} | IP: ${req.ip}`);
+    await teacherController.getClasses(req, res, next);
+});
+
 logger.info('[TeacherRoute] Khởi tạo teacher routes thành công');
 
 module.exports = router;

@@ -3,6 +3,7 @@ const userRoutes = require('./user/user.route');
 const vocabularyRoutes = require('./vocabulary/vocabulary.route');
 const studentRoutes = require('./student/student.route');
 const teacherRoutes = require('./teacher/teacher.route');
+const classRoutes = require('./class/class.route');
 const logger = require('../utils/logger');
 
 const router = express.Router();
@@ -24,6 +25,10 @@ router.use('/students', studentRoutes);
 // Mount teacher routes
 logger.info('[Module] Mount route: /teachers');
 router.use('/teachers', teacherRoutes);
+
+// Mount class routes
+logger.info('[Module] Mount route: /classes');
+router.use('/classes', classRoutes);
 
 logger.info('[Module] Khởi tạo routes thành công');
 

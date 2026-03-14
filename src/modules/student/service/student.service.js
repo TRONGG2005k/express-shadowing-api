@@ -128,12 +128,13 @@ class StudentService {
             });
         }
 
-        // Nếu cập nhật tên hoặc ngày sinh, kiểm tra trùng lặp
+        // Nếu cập nhật tên hoặc ngày sinh, kiểm tra trùng lặp (trừ ID hiện tại)
         if ((validatedData.full_name || validatedData.dob !== undefined) &&
             (validatedData.full_name !== existing.full_name || validatedData.dob !== existing.dob)) {
-            const exists = await studentRepository.existsByNameAndDob(
+            const exists = await studentRepository.existsByNameAndDobExcludingId(
                 validatedData.full_name || existing.full_name,
-                validatedData.dob !== undefined ? validatedData.dob : existing.dob
+                validatedData.dob !== undefined ? validatedData.dob : existing.dob,
+                id
             );
             if (exists) {
                 logger.warn(`[StudentService] [updateStudent] Đã tồn tại | Name: ${validatedData.full_name}`);
@@ -145,9 +146,9 @@ class StudentService {
             }
         }
 
-        // Kiểm tra số điện thoại trùng lặp khi cập nhật
+        // Kiểm tra số điện thoại trùng lặp khi cập nhật (trừ ID hiện tại)
         if (validatedData.phone && validatedData.phone !== existing.phone) {
-            const phoneExists = await studentRepository.existsByPhone(validatedData.phone);
+            const phoneExists = await studentRepository.existsByPhoneExcludingId(validatedData.phone, id);
             if (phoneExists) {
                 logger.warn(`[StudentService] [updateStudent] Số điện thoại đã tồn tại | Phone: ${validatedData.phone}`);
                 throw new AppException({
@@ -234,8 +235,18 @@ class StudentService {
             });
         }
 
+        // Kiểm tra lớp học có tồn tại không
+        const classExists = await studentRepository.classExists(classId);
+        if (!classExists) {
+            logger.warn(`[StudentService] [addStudentToClass] Không tìm thấy lớp học | ID: ${classId}`);
+            throw new AppException({
+                ...errorMessages.NOT_FOUND,
+                message: 'Không tìm thấy lớp học'
+            });
+        }
+
         // Kiểm tra học sinh đã trong lớp chưa
-        const alreadyInClass = student.student_class?.some(sc => sc.class_id === classId);
+        const alreadyInClass = await studentRepository.isStudentInClass(studentId, classId);
         if (alreadyInClass) {
             logger.warn(`[StudentService] [addStudentToClass] Học sinh đã trong lớp | Student: ${studentId}, Class: ${classId}`);
             throw new AppException({

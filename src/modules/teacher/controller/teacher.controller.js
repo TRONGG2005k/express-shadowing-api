@@ -133,6 +133,27 @@ class TeacherController {
             next(err);
         }
     }
+
+    /**
+     * GET /api/teachers/:id/classes
+     * Lấy danh sách lớp học của giáo viên
+     */
+    async getClasses(req, res, next) {
+        try {
+            const { id } = req.params;
+            logger.info(`[TeacherController] [getClasses] Bắt đầu | ID: ${id}`);
+
+            const classes = await teacherService.getTeacherClasses(id);
+
+            logger.info(`[TeacherController] [getClasses] Thành công | ID: ${id} | Classes: ${classes.length}`);
+            return res.status(200).json({
+                success: true,
+                data: classes
+            });
+        } catch (err) {
+            next(err);
+        }
+    }
 }
 
 module.exports = new TeacherController();

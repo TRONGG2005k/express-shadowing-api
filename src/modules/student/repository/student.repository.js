@@ -192,6 +192,81 @@ class StudentRepository {
     }
 
     /**
+     * Kiểm tra học sinh đã tồn tại chưa (theo tên và ngày sinh, trừ ID hiện tại - dùng cho update)
+     */
+    async existsByNameAndDobExcludingId(fullName, dob, excludeId) {
+        logger.info(`[StudentRepository] [existsByNameAndDobExcludingId] Kiểm tra | Name: ${fullName}, DOB: ${dob}, ExcludeId: ${excludeId}`);
+
+        const count = await prisma.student.count({
+            where: {
+                full_name: { equals: fullName, mode: 'insensitive' },
+                dob: dob ? new Date(dob) : null,
+                deleted_at: null,
+                id: { not: excludeId }
+            }
+        });
+
+        const exists = count > 0;
+        logger.info(`[StudentRepository] [existsByNameAndDobExcludingId] Kết quả | Exists: ${exists}`);
+        return exists;
+    }
+
+    /**
+     * Kiểm tra số điện thoại đã tồn tại chưa (trừ ID hiện tại - dùng cho update)
+     */
+    async existsByPhoneExcludingId(phone, excludeId) {
+        logger.info(`[StudentRepository] [existsByPhoneExcludingId] Kiểm tra | Phone: ${phone}, ExcludeId: ${excludeId}`);
+
+        const count = await prisma.student.count({
+            where: {
+                phone: phone,
+                deleted_at: null,
+                id: { not: excludeId }
+            }
+        });
+
+        const exists = count > 0;
+        logger.info(`[StudentRepository] [existsByPhoneExcludingId] Kết quả | Exists: ${exists}`);
+        return exists;
+    }
+
+    /**
+     * Kiểm tra lớp học có tồn tại không
+     */
+    async classExists(classId) {
+        logger.info(`[StudentRepository] [classExists] Kiểm tra | ClassId: ${classId}`);
+
+        const count = await prisma.renamedclass.count({
+            where: {
+                id: classId,
+                deleted_at: null
+            }
+        });
+
+        const exists = count > 0;
+        logger.info(`[StudentRepository] [classExists] Kết quả | Exists: ${exists}`);
+        return exists;
+    }
+
+    /**
+     * Kiểm tra học sinh đã trong lớp chưa
+     */
+    async isStudentInClass(studentId, classId) {
+        logger.info(`[StudentRepository] [isStudentInClass] Kiểm tra | Student: ${studentId}, Class: ${classId}`);
+
+        const count = await prisma.student_class.count({
+            where: {
+                student_id: studentId,
+                class_id: classId
+            }
+        });
+
+        const exists = count > 0;
+        logger.info(`[StudentRepository] [isStudentInClass] Kết quả | Exists: ${exists}`);
+        return exists;
+    }
+
+    /**
      * Tạo mới học sinh
      */
     async create(data) {

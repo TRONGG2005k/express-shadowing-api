@@ -102,9 +102,9 @@ class TeacherService {
             });
         }
 
-        // Nếu cập nhật tên, kiểm tra trùng lặp
+        // Nếu cập nhật tên, kiểm tra trùng lặp (trừ ID hiện tại)
         if (validatedData.full_name && validatedData.full_name !== existing.full_name) {
-            const exists = await teacherRepository.existsByName(validatedData.full_name);
+            const exists = await teacherRepository.existsByNameExcludingId(validatedData.full_name, id);
             if (exists) {
                 logger.warn(`[TeacherService] [updateTeacher] Đã tồn tại | Name: ${validatedData.full_name}`);
                 throw new AppException({
@@ -169,6 +169,31 @@ class TeacherService {
 
         logger.info(`[TeacherService] [hardDeleteTeacher] Thành công | ID: ${id}`);
         return true;
+    }
+
+    /**
+     * Lấy danh sách lớp học của giáo viên
+     */
+    async getTeacherClasses(id) {
+        logger.info(`[TeacherService] [getTeacherClasses] Bắt đầu | ID: ${id}`);
+
+        // Validate ID
+        TeacherIdParamDto.parse({ id });
+
+        // Kiểm tra giáo viên có tồn tại không
+        const existing = await teacherRepository.findById(id);
+        if (!existing) {
+            logger.warn(`[TeacherService] [getTeacherClasses] Không tìm thấy | ID: ${id}`);
+            throw new AppException({
+                ...errorMessages.NOT_FOUND,
+                message: 'Không tìm thấy giáo viên'
+            });
+        }
+
+        const classes = await teacherRepository.findClassesByTeacherId(id);
+
+        logger.info(`[TeacherService] [getTeacherClasses] Thành công | ID: ${id} | Classes: ${classes.length}`);
+        return classes;
     }
 }
 

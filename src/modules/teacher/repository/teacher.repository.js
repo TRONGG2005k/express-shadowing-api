@@ -116,6 +116,25 @@ class TeacherRepository {
     }
 
     /**
+     * Kiểm tra giáo viên đã tồn tại chưa (theo tên, trừ ID hiện tại - dùng cho update)
+     */
+    async existsByNameExcludingId(fullName, excludeId) {
+        logger.info(`[TeacherRepository] [existsByNameExcludingId] Kiểm tra | Name: ${fullName}, ExcludeId: ${excludeId}`);
+
+        const count = await prisma.teacher.count({
+            where: {
+                full_name: { equals: fullName, mode: 'insensitive' },
+                deleted_at: null,
+                id: { not: excludeId }
+            }
+        });
+
+        const exists = count > 0;
+        logger.info(`[TeacherRepository] [existsByNameExcludingId] Kết quả | Exists: ${exists}`);
+        return exists;
+    }
+
+    /**
      * Tạo mới giáo viên
      */
     async create(data) {
@@ -206,6 +225,40 @@ class TeacherRepository {
 
         logger.info(`[TeacherRepository] [delete] Xóa cứng thành công | ID: ${id}`);
         return deleted;
+    }
+
+    /**
+     * Lấy danh sách lớp học của giáo viên
+     */
+    async findClassesByTeacherId(teacherId) {
+        logger.info(`[TeacherRepository] [findClassesByTeacherId] Bắt đầu | TeacherId: ${teacherId}`);
+
+        const classes = await prisma.renamedclass.findMany({
+            where: {
+                teacher_id: teacherId,
+                deleted_at: null
+            },
+            include: {
+                teacher: {
+                    select: {
+                        id: true,
+                        full_name: true
+                    }
+                },
+                _count: {
+                    select: {
+                        student_class: true,
+                        assignment_class: true
+                    }
+                }
+            },
+            orderBy: {
+                created_at: 'desc'
+            }
+        });
+
+        logger.info(`[TeacherRepository] [findClassesByTeacherId] Thành công | Classes: ${classes.length}`);
+        return classes;
     }
 }
 
