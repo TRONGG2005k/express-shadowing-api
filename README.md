@@ -16,7 +16,7 @@ LearnHub is a comprehensive English learning platform that provides:
 
 ## 🏗️ Database Architecture
 
-![Entity Relationship Diagram](erd.png)
+![Entity Relationship Diagram](erd_.png)
 
 ### Core Entities
 
