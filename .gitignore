@@ -19,3 +19,7 @@ logs
 /src/generated/prisma
 
 /generated/prisma
+/test-crud.js
+/test-timezone.ts
+
+*.png

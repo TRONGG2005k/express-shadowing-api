@@ -1,4 +1,5 @@
 const express = require('express');
+const cookieParser = require('cookie-parser');
 const routes = require('./modules');
 const logger = require('./utils/logger');
 const { prisma } = require('./config/prisma');
@@ -8,8 +9,25 @@ const { z } = require('zod');
 const app = express();
 
 // Middleware
-app.use(express.json());
+// JSON parser với error handling - cho phép route refresh không cần body
+app.use((req, res, next) => {
+    express.json()(req, res, (err) => {
+        if (err) {
+            // Bỏ qua lỗi JSON parse cho route GET /api/auth/refresh
+            if (req.method === 'GET' && req.originalUrl.includes('/auth/refresh')) {
+                return next();
+            }
+            return res.status(400).json({
+                message: 'Unexpected end of JSON input',
+                status: 400,
+                errorCode: 'E99999'
+            });
+        }
+        next();
+    });
+});
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.use((req, res, next) => {
     logger.info(`${req.method} ${req.url}`);
